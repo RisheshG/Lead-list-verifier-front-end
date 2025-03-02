@@ -4,6 +4,17 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import "./EmailVerifier.css";
 
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAQdeTYp8cpbN2kM-MWGsqr-tDd4L8pJgw",
+  authDomain: "email-verifier-2d5bf.firebaseapp.com",
+  projectId: "email-verifier-2d5bf",
+  storageBucket: "email-verifier-2d5bf.appspot.com",
+  messagingSenderId: "781742681227",
+  appId: "1:781742681227:web:6f2b31a109bf432782388e",
+  measurementId: "G-VYPZB39N4G",
+};
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
