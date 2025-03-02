@@ -71,7 +71,7 @@ export default function EmailVerifier() {
       const idToken = await user.getIdToken();
       const userId = user.uid;
 
-      const response = await fetch(`https://lead-list-verifier-backend-1.onrender.com/${userId}`, {
+      const response = await fetch(`https://lead-list-verifier-backend-1.onrender.com/credits/${userId}`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
