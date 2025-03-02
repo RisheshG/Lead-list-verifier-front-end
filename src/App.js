@@ -71,7 +71,7 @@ export default function EmailVerifier() {
       const idToken = await user.getIdToken();
       const userId = user.uid;
 
-      const response = await fetch(`http://localhost:5001/credits/${userId}`, {
+      const response = await fetch(`https://lead-list-verifier-backend-1.onrender.com/${userId}`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -229,7 +229,7 @@ export default function EmailVerifier() {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("http://localhost:5001/verify", {
+      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify", {
         method: "POST",
         body: formData,
         headers: {
@@ -282,7 +282,7 @@ export default function EmailVerifier() {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("http://localhost:5001/verify-single", {
+      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify-single", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -341,7 +341,7 @@ export default function EmailVerifier() {
   // SSE Connection for Progress Updates
   useEffect(() => {
     if (isProcessing) {
-      const eventSource = new EventSource("http://localhost:5001/progress");
+      const eventSource = new EventSource("https://lead-list-verifier-backend-1.onrender.com/progress");
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
