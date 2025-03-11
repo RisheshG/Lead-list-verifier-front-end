@@ -72,7 +72,7 @@ export default function EmailVerifier() {
       const idToken = await user.getIdToken();
       const userId = user.uid;
 
-      const response = await fetch(`http://localhost:5001/credits/${userId}`, {
+      const response = await fetch(`https://lead-list-verifier-backend-1.onrender.com/credits/${userId}`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -222,7 +222,7 @@ const handleColumnSelect = (column) => {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("http://localhost:5001/verify", {
+      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify", {
         method: "POST",
         body: formData,
         headers: {
@@ -234,9 +234,9 @@ const handleColumnSelect = (column) => {
 
       if (response.ok) {
         setDownloadUrls({
-          valid: data.validDownloadLink ? `http://localhost:5001${data.validDownloadLink}` : null,
-          invalid: data.invalidDownloadLink ? `http://localhost:5001${data.invalidDownloadLink}` : null,
-          catchAll: data.catchAllDownloadLink ? `http://localhost:5001${data.catchAllDownloadLink}` : null,
+          valid: data.validDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.validDownloadLink}` : null,
+          invalid: data.invalidDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.invalidDownloadLink}` : null,
+          catchAll: data.catchAllDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.catchAllDownloadLink}` : null,
         });
         setVerificationResults({
           valid: data.validCount || 0,
@@ -275,7 +275,7 @@ const handleColumnSelect = (column) => {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("http://localhost:5001/verify-single", {
+      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify-single", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -334,7 +334,7 @@ const handleColumnSelect = (column) => {
   // SSE Connection for Progress Updates
   useEffect(() => {
     if (isProcessing) {
-      const eventSource = new EventSource("http://localhost:5001/progress");
+      const eventSource = new EventSource("https://lead-list-verifier-backend-1.onrender.com/progress");
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
