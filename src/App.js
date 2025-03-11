@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import "./EmailVerifier.css";
+import Papa from "papaparse";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -71,7 +72,7 @@ export default function EmailVerifier() {
       const idToken = await user.getIdToken();
       const userId = user.uid;
 
-      const response = await fetch(`https://lead-list-verifier-backend-1.onrender.com/credits/${userId}`, {
+      const response = await fetch(`http://localhost:5001/credits/${userId}`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -119,79 +120,71 @@ export default function EmailVerifier() {
   };
 
   // Handle file upload and column selection
-  const handleFileChange = (event) => {
+
+const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
-      setFile(selectedFile);
-      setSelectedColumn("");
-      setColumns([]);
-      setTotalEntries(0);
-      setDuplicateEntries(0);
-      setCreditsRequired(0);
-      setBlankEntries(0);
+        setFile(selectedFile);
+        setSelectedColumn("");
+        setColumns([]);
+        setTotalEntries(0);
+        setDuplicateEntries(0);
+        setCreditsRequired(0);
+        setBlankEntries(0);
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target.result;
-        const rows = text.split("\n").map((row) => row.trim());
-        const firstLine = rows[0];
-        const columns = firstLine.split(",").map((col) => col.trim());
-        setColumns(columns);
-      };
-      reader.readAsText(selectedFile);
+        // Use PapaParse to extract column names
+        Papa.parse(selectedFile, {
+            complete: (result) => {
+                if (result.data.length > 0) {
+                    setColumns(Object.keys(result.data[0])); // Extract column headers
+                }
+            },
+            header: true,
+            skipEmptyLines: true,
+        });
     }
-  };
+};
 
-  // Handle column selection
-  const handleColumnSelect = (column) => {
+const handleColumnSelect = (column) => {
     setSelectedColumn(column);
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      const rows = text.split("\n").map((row) => row.trim()).filter((row) => row !== "");
-      const headers = rows[0].split(",").map((header) => header.trim().replace(/"/g, ""));
-      const dataRows = rows.slice(1);
-      const colIndex = headers.indexOf(column);
-      if (colIndex === -1) {
-        console.error("Selected column not found in CSV headers.");
-        return;
-      }
+    Papa.parse(file, {
+        complete: (result) => {
+            if (result.data.length === 0) return;
 
-      const values = dataRows.map((row, rowIndex) => {
-        const columns = parseCSVRow(row);
-        const value = columns[colIndex] || "";
-        return value;
-      });
+            const values = result.data.map((row) => row[column]?.trim() || "");
 
-      setTotalEntries(values.length);
+            setTotalEntries(values.length);
 
-      const blankCount = values.filter((value) => value === "").length;
-      setBlankEntries(blankCount);
+            const blankCount = values.filter((value) => value === "").length;
+            setBlankEntries(blankCount);
 
-      const duplicateMap = new Map();
-      values.forEach((value, index) => {
-        if (value !== "") {
-          if (!duplicateMap.has(value)) {
-            duplicateMap.set(value, []);
-          }
-          duplicateMap.get(value).push(index + 1);
-        }
-      });
+            const duplicateMap = new Map();
+            values.forEach((value, index) => {
+                if (value !== "") {
+                    if (!duplicateMap.has(value)) {
+                        duplicateMap.set(value, []);
+                    }
+                    duplicateMap.get(value).push(index + 1);
+                }
+            });
 
-      let duplicateCount = 0;
-      duplicateMap.forEach((rowNumbers, value) => {
-        if (rowNumbers.length > 1) {
-          duplicateCount += rowNumbers.length - 1;
-        }
-      });
+            let duplicateCount = 0;
+            duplicateMap.forEach((rowNumbers) => {
+                if (rowNumbers.length > 1) {
+                    duplicateCount += rowNumbers.length - 1;
+                }
+            });
 
-      setDuplicateEntries(duplicateCount);
-      setCreditsRequired(values.length - blankCount - duplicateCount);
-    };
-    reader.readAsText(file);
-  };
+            setDuplicateEntries(duplicateCount);
+            setCreditsRequired(values.length - blankCount - duplicateCount);
+        },
+        header: true,
+        skipEmptyLines: true,
+    });
+};
+
 
   // Parse CSV row
   const parseCSVRow = (row) => {
@@ -229,7 +222,7 @@ export default function EmailVerifier() {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify", {
+      const response = await fetch("http://localhost:5001/verify", {
         method: "POST",
         body: formData,
         headers: {
@@ -239,13 +232,12 @@ export default function EmailVerifier() {
 
       const data = await response.json();
 
-     if (response.ok) {
+      if (response.ok) {
         setDownloadUrls({
-          valid: data.validDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.validDownloadLink}` : null,
-          invalid: data.invalidDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.invalidDownloadLink}` : null,
-          catchAll: data.catchAllDownloadLink ? `https://lead-list-verifier-backend-1.onrender.com${data.catchAllDownloadLink}` : null,
+          valid: data.validDownloadLink ? `http://localhost:5001${data.validDownloadLink}` : null,
+          invalid: data.invalidDownloadLink ? `http://localhost:5001${data.invalidDownloadLink}` : null,
+          catchAll: data.catchAllDownloadLink ? `http://localhost:5001${data.catchAllDownloadLink}` : null,
         });
-       
         setVerificationResults({
           valid: data.validCount || 0,
           invalid: data.invalidCount || 0,
@@ -283,7 +275,7 @@ export default function EmailVerifier() {
 
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch("https://lead-list-verifier-backend-1.onrender.com/verify-single", {
+      const response = await fetch("http://localhost:5001/verify-single", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -342,7 +334,7 @@ export default function EmailVerifier() {
   // SSE Connection for Progress Updates
   useEffect(() => {
     if (isProcessing) {
-      const eventSource = new EventSource("https://lead-list-verifier-backend-1.onrender.com/progress");
+      const eventSource = new EventSource("http://localhost:5001/progress");
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
